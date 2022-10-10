@@ -1,10 +1,11 @@
 package com.inovatrics.rest_api_proj;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -16,77 +17,85 @@ public class FileController {
     // TODO nejako doriesit responsy a odpovede
 
     @PostMapping("file")
-    public void createNewFile(@RequestParam("path") String filePath, @RequestParam("content") String fileContent){
+    public ResponseEntity<String> createNewFile(@RequestParam("path") String filePath, @RequestParam("content") String fileContent){
         System.out.println("Received file: " + filePath);
 
         Path myPath = Paths.get(filePath);
         if (Files.exists(myPath)) {
             System.out.println("File already exists");
+            return new ResponseEntity<>("File already exists", HttpStatus.BAD_REQUEST);
         }
         else {
             try {
                 Files.createFile(myPath);
                 System.out.println("File created");
                 Files.writeString(myPath, fileContent);
+                return new ResponseEntity<>("File Created", HttpStatus.CREATED);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         System.out.println(fileContent);
+        return null;
     }
 
     @DeleteMapping("file")
-    public void deleteExistingFile(@RequestParam("path") String filePath) {
+    public ResponseEntity<String> deleteExistingFile(@RequestParam("path") String filePath) {
         Path path = Paths.get(filePath);
         try {
             Files.deleteIfExists(path);
+            return new ResponseEntity<>("File deleted", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     @PostMapping("file:copy")
-    public void copyFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
+    public ResponseEntity<String> copyFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
         try {
             Files.copy(source, destination);
+            return new ResponseEntity<>("File copied", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     @PatchMapping("file")
-    public void moveFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
+    public ResponseEntity<String> moveFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
         try {
             Files.move(source, destination);
+            return new ResponseEntity<>("File moved", HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     @GetMapping("file")
-    public void getContentOfFile(@RequestParam("path") String filePath){
+    public ResponseEntity<String> getContentOfFile(@RequestParam("path") String filePath){
         // TODO response body
         Path path = Paths.get(filePath);
         try {
             String content = Files.readString(path);
             System.out.println(content);
+            return new ResponseEntity<>(content, HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     @GetMapping("file:pattern")
-    public void serachForPatternInFileContent(@RequestParam("path") String dirPath, @RequestParam("pattern") String givenPattern){
-        // TODO get the list of files where the given pattern occurs
-        // TODO get the line number (per file) where the given pattern occurs
-
+    public ResponseEntity<String> serachForPatternInFileContent(@RequestParam("path") String dirPath, @RequestParam("pattern") String givenPattern){
         Map<String, ArrayList<Integer>> result = new HashMap<>();
 
         File dir = new File(dirPath);
@@ -132,6 +141,7 @@ public class FileController {
         }
 
         System.out.println(result);
+        return new ResponseEntity<>(result.toString(), HttpStatus.OK);
 
     }
 }

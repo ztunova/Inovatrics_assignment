@@ -1,5 +1,7 @@
 package com.inovatrics.rest_api_proj;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -9,18 +11,20 @@ import java.util.*;
 public class DirectoryController {
 
     @PostMapping("directory")
-    public void createNewDirectory(@RequestParam("path") String dirPath){
+    public ResponseEntity<String> createNewDirectory(@RequestParam("path") String dirPath){
         File newDirectory = new File(dirPath);
         if (!newDirectory.exists()){
-
             if (newDirectory.mkdirs()){
-                System.out.println("new directory created");;
+                System.out.println("new directory created");
+                return new ResponseEntity<>("Directory created", HttpStatus.CREATED);
             } else {
                 System.out.println("new directory failed to create");
             }
         } else {
             System.out.println("directory already exists");
+            return new ResponseEntity<>("Directory already exists", HttpStatus.BAD_REQUEST);
         }
+        return null;
     }
 
     private void deleteSubfiles(File folder){
@@ -36,10 +40,11 @@ public class DirectoryController {
     }
 
     @DeleteMapping("directory")
-    public void deleteExistingDirectory(@RequestParam("path") String dirPath){
+    public ResponseEntity<String> deleteExistingDirectory(@RequestParam("path") String dirPath){
         File dir = new File(dirPath);
         deleteSubfiles(dir);
         dir.delete();
+        return new ResponseEntity<>("Directory deleted", HttpStatus.OK);
     }
 
     private long lengthOfDirectory(File folder){
@@ -58,7 +63,7 @@ public class DirectoryController {
     }
 
     @GetMapping("directory")
-    public void listContentOfDirectory(@RequestParam("path") String dirPath){
+    public ResponseEntity<String> listContentOfDirectory(@RequestParam("path") String dirPath){
         //TODO response
         File dir = new File(dirPath);
         File[] fileArr = dir.listFiles();
@@ -79,15 +84,17 @@ public class DirectoryController {
                 if (sizeFileMap.containsKey(size)){
                     value = sizeFileMap.get(size);
                 } else {
-                    value = new ArrayList<String>();
+                    value = new ArrayList<>();
                 }
                 value.add(f.getName());
                 sizeFileMap.put(size, value);
             }
 
             System.out.println(sizeFileMap);
+            return new ResponseEntity<>(sizeFileMap.toString(), HttpStatus.OK);
         } else {
             System.out.println("empty directory");
+            return new ResponseEntity<>("Empty directory", HttpStatus.BAD_REQUEST);
         }
     }
 }
