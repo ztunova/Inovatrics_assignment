@@ -12,6 +12,7 @@ public class DirectoryController {
 
     @PostMapping("directory")
     public ResponseEntity<String> createNewDirectory(@RequestParam("path") String dirPath){
+        //TODO directory failed to create response
         File newDirectory = new File(dirPath);
         if (!newDirectory.exists()){
             if (newDirectory.mkdirs()){
@@ -64,7 +65,6 @@ public class DirectoryController {
 
     @GetMapping("directory")
     public ResponseEntity<String> listContentOfDirectory(@RequestParam("path") String dirPath){
-        //TODO response
         File dir = new File(dirPath);
         File[] fileArr = dir.listFiles();
         if (fileArr != null) {

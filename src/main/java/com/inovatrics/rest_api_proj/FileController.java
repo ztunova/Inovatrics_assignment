@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 @RestController
 public class FileController {
-    // TODO nejako doriesit responsy a odpovede
-
     @PostMapping("file")
     public ResponseEntity<String> createNewFile(@RequestParam("path") String filePath, @RequestParam("content") String fileContent){
         System.out.println("Received file: " + filePath);
@@ -32,12 +30,11 @@ public class FileController {
                 Files.writeString(myPath, fileContent);
                 return new ResponseEntity<>("File Created", HttpStatus.CREATED);
             } catch (IOException e) {
+                //TODO response
                 e.printStackTrace();
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
         }
-
-        System.out.println(fileContent);
-        return null;
     }
 
     @DeleteMapping("file")
@@ -47,9 +44,10 @@ public class FileController {
             Files.deleteIfExists(path);
             return new ResponseEntity<>("File deleted", HttpStatus.OK);
         } catch (IOException e) {
+            //TODO response
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return null;
     }
 
     @PostMapping("file:copy")
@@ -61,9 +59,10 @@ public class FileController {
             Files.copy(source, destination);
             return new ResponseEntity<>("File copied", HttpStatus.OK);
         } catch (IOException e) {
+            //TODO response
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return null;
     }
 
     @PatchMapping("file")
@@ -75,23 +74,25 @@ public class FileController {
             Files.move(source, destination);
             return new ResponseEntity<>("File moved", HttpStatus.OK);
         } catch (IOException e) {
+            //TODO response
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return null;
     }
 
     @GetMapping("file")
     public ResponseEntity<String> getContentOfFile(@RequestParam("path") String filePath){
-        // TODO response body
+
         Path path = Paths.get(filePath);
         try {
             String content = Files.readString(path);
             System.out.println(content);
             return new ResponseEntity<>(content, HttpStatus.OK);
         } catch (IOException e) {
+            // TODO response
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return null;
     }
 
     @GetMapping("file:pattern")
@@ -111,7 +112,10 @@ public class FileController {
         Pattern pattern = Pattern.compile(givenPattern);
         Matcher matcher;
 
-        assert dirContent != null;
+        //TODO fix response for empty dir
+        if (dirContent == null){
+            return new ResponseEntity<>("Empty directory", HttpStatus.BAD_REQUEST);
+        }
         for (File file : dirContent) {
             System.out.println(file.getName());
             ArrayList<Integer> linesWithPattern = new ArrayList<>();
@@ -136,7 +140,9 @@ public class FileController {
                 }
 
             } catch (IOException e) {
+                //TODO response
                 e.printStackTrace();
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
         }
 
