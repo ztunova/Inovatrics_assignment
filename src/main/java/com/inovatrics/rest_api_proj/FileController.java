@@ -2,12 +2,14 @@ package com.inovatrics.rest_api_proj;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 public class FileController {
@@ -80,8 +82,46 @@ public class FileController {
         }
     }
 
-    public void serachForPatternInFileContent(){
+    @GetMapping("file:pattern")
+    public void serachForPatternInFileContent(@RequestParam("path") String dirPath, @RequestParam("pattern") String givenPattern){
         // TODO get the list of files where the given pattern occurs
         // TODO get the line number (per file) where the given pattern occurs
+
+        File dir = new File(dirPath);
+        FileFilter fileFilter = new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isFile();
+            }
+        };
+        File[] dirContent = dir.listFiles(fileFilter);
+        System.out.println(Arrays.toString(dirContent));
+
+        Pattern pattern = Pattern.compile(givenPattern);
+        Matcher matcher;
+
+        assert dirContent != null;
+        for (File file : dirContent) {
+            System.out.println(file.getName());
+
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                int lineNum = 0;
+                while ((line = reader.readLine()) != null) {
+                    lineNum++;
+                    matcher = pattern.matcher(line);
+
+                    if (matcher.find()) {
+                        System.out.println(lineNum + line);
+                    }
+                    //System.out.println(matcher.find());
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
