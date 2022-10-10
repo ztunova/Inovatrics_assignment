@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,6 +87,8 @@ public class FileController {
         // TODO get the list of files where the given pattern occurs
         // TODO get the line number (per file) where the given pattern occurs
 
+        Map<String, ArrayList<Integer>> result = new HashMap<>();
+
         File dir = new File(dirPath);
         FileFilter fileFilter = new FileFilter() {
             @Override
@@ -103,25 +105,33 @@ public class FileController {
         assert dirContent != null;
         for (File file : dirContent) {
             System.out.println(file.getName());
+            ArrayList<Integer> linesWithPattern = new ArrayList<>();
 
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(file));
                 String line;
                 int lineNum = 0;
+
                 while ((line = reader.readLine()) != null) {
                     lineNum++;
                     matcher = pattern.matcher(line);
 
                     if (matcher.find()) {
+                        linesWithPattern.add(lineNum);
                         System.out.println(lineNum + line);
                     }
                     //System.out.println(matcher.find());
+                }
+                if (!linesWithPattern.isEmpty()){
+                    result.put(file.getName(), linesWithPattern);
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+        System.out.println(result);
 
     }
 }
