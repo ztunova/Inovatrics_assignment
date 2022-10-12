@@ -43,9 +43,15 @@ public class DirectoryController {
     @DeleteMapping("directory")
     public ResponseEntity<String> deleteExistingDirectory(@RequestParam("path") String dirPath){
         File dir = new File(dirPath);
-        deleteSubfiles(dir);
-        dir.delete();
-        return new ResponseEntity<>("Directory deleted", HttpStatus.OK);
+        if(!dir.exists()){
+            return new ResponseEntity<>("Directory not found", HttpStatus.NOT_FOUND);
+        }
+        if (dir.isDirectory()) {
+            deleteSubfiles(dir);
+            dir.delete();
+            return new ResponseEntity<>("Directory deleted", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Not a directory", HttpStatus.BAD_REQUEST);
     }
 
     private long lengthOfDirectory(File folder){
@@ -91,10 +97,10 @@ public class DirectoryController {
             }
 
             System.out.println(sizeFileMap);
-            return new ResponseEntity<>(sizeFileMap.toString(), HttpStatus.OK);
+            return new ResponseEntity<>(sizeFileMap.values().toString().replace("[", "").replace("]", ""), HttpStatus.OK);
         } else {
-            System.out.println("empty directory");
-            return new ResponseEntity<>("Empty directory", HttpStatus.BAD_REQUEST);
+            //System.out.println("empty directory");
+            return new ResponseEntity<>("Directory not found", HttpStatus.NOT_FOUND);
         }
     }
 }

@@ -32,7 +32,7 @@ class FileControllerTest {
 
     @Test
     void createNewFileTest() throws Exception {
-        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/newCreated.txt";
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/c/newCreated.txt";
         Files.deleteIfExists(Paths.get(path));
         String content = "nejaky obsah suboru";
 
@@ -290,7 +290,5 @@ class FileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("{prvy.txt=[2, 5, 8], druhy.txt=[2, 7, 10]}"));
     }
-
-
 
 }
