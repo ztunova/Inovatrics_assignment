@@ -1,5 +1,9 @@
 package com.inovatrics.rest_api_proj;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,51 +18,61 @@ import java.util.regex.Pattern;
 public class FileController {
 
 
+    @Operation(summary = "Create new file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "File successfully created"),
+            @ApiResponse(responseCode = "400", description = "Given file already exists"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @PostMapping("file")
-    public ResponseEntity<String> createNewFile(@RequestParam("path") String filePath, @RequestParam("content") String fileContent){
-        System.out.println("Received file: " + filePath);
-
+    public ResponseEntity<String> createNewFile(@RequestParam("path")
+                                                    @Parameter(name = "path", description = "path to created file") String filePath,
+                                                @RequestParam("content")
+                                                @Parameter(name = "content", description = "content of new file")
+                                                        String fileContent){
         Path myPath = Paths.get(filePath);
-        /*if (Files.exists(myPath)) {
-            System.out.println("File already exists");
+        try {
+            Files.createFile(myPath);
+            Files.writeString(myPath, fileContent);
+            return new ResponseEntity<>("File Created", HttpStatus.CREATED);
+        } catch (FileAlreadyExistsException fe) {
             return new ResponseEntity<>("File already exists", HttpStatus.BAD_REQUEST);
+        } catch (IOException e){
+            return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        else {*/
-            try {
-                Files.createFile(myPath);
-                System.out.println("File created");
-                Files.writeString(myPath, fileContent);
-                return new ResponseEntity<>("File Created", HttpStatus.CREATED);
-            } catch (FileAlreadyExistsException fe) {
-                //TODO response
-                //fe.printStackTrace();
-                return new ResponseEntity<>("File already exists", HttpStatus.BAD_REQUEST);
-            } catch (IOException e){
-                e.printStackTrace();
-                return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        //}
     }
 
+    @Operation(summary = "Delete existing file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File successfully deleted"),
+            @ApiResponse(responseCode = "404", description = "Given file does not exist"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @DeleteMapping("file")
-    public ResponseEntity<String> deleteExistingFile(@RequestParam("path") String filePath) {
-        //nenajdeny vyhodit exception, 404, 500 io, 400 no directory
+    public ResponseEntity<String> deleteExistingFile(@RequestParam("path")
+                                                         @Parameter(name = "path", description = "Path to file to be deleted")
+                                                                 String filePath) {
         Path path = Paths.get(filePath);
         try {
             Files.delete(path);
             return new ResponseEntity<>("File deleted", HttpStatus.OK);
         } catch (NoSuchFileException noFile) {
-            //TODO response
-            //noFile.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         } catch (IOException e){
-            e.printStackTrace();
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @Operation(summary = "Copy file to target directory")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File successfully copied"),
+            @ApiResponse(responseCode = "400", description = "Destination file already exists"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @PostMapping("file:copy")
-    public ResponseEntity<String> copyFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
+    public ResponseEntity<String> copyFileToTargetDirectory(@RequestParam("srcPath")
+                                                                @Parameter(name = "srcPath", description = "Path to file to be copied")
+                                                                        String srcPath,
+                                                            @RequestParam("dstPath") @Parameter(name = "dstPath", description = "Path to copied file")
+                                                                    String dstPath){
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
@@ -66,19 +80,27 @@ public class FileController {
             Files.copy(source, destination);
             return new ResponseEntity<>("File copied", HttpStatus.OK);
         } catch(FileAlreadyExistsException fe){
-            //fe.printStackTrace();
             return new ResponseEntity<>("Destination file already exists", HttpStatus.BAD_REQUEST);
         } catch (NoSuchFileException no){
-            //no.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         } catch (IOException e){
-            //e.printStackTrace();
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @Operation(summary = "Move file to target directory")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File successfully moved"),
+            @ApiResponse(responseCode = "400", description = "Destination file already exists"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @PatchMapping("file")
-    public ResponseEntity<String> moveFileToTargetDirectory(@RequestParam("srcPath") String srcPath, @RequestParam("dstPath") String dstPath){
+    public ResponseEntity<String> moveFileToTargetDirectory(@RequestParam("srcPath")
+                                                                @Parameter(name = "srcPath", description = "Path to file to be moved")
+                                                                        String srcPath,
+                                                            @RequestParam("dstPath")
+                                                            @Parameter(name = "dstPath", description = "Path to moved file")
+                                                                    String dstPath){
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
@@ -86,30 +108,31 @@ public class FileController {
             Files.move(source, destination);
             return new ResponseEntity<>("File moved", HttpStatus.OK);
         } catch(FileAlreadyExistsException fe){
-            //fe.printStackTrace();
             return new ResponseEntity<>("Destination file already exists", HttpStatus.BAD_REQUEST);
         } catch (NoSuchFileException no){
-            //no.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         } catch (IOException e){
-            //e.printStackTrace();
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @Operation(summary = "Get content of file")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Content of file successfully read"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @GetMapping("file")
-    public ResponseEntity<String> getContentOfFile(@RequestParam("path") String filePath){
+    public ResponseEntity<String> getContentOfFile(@RequestParam("path")
+                                                       @Parameter(name = "path", description = "Path to file to be read")
+                                                               String filePath){
 
         Path path = Paths.get(filePath);
         try {
             String content = Files.readString(path);
-            System.out.println(content);
             return new ResponseEntity<>(content, HttpStatus.OK);
         } catch (NoSuchFileException no){
-            //no.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         } catch (IOException e){
-            //e.printStackTrace();
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
