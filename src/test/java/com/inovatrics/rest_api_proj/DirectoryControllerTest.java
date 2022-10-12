@@ -121,7 +121,7 @@ class DirectoryControllerTest {
                         .param("path", path)
         )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("empty.txt, emptyDir, newCreated.txt, prvy.txt, druhy.txt, a"));
+                .andExpect(MockMvcResultMatchers.content().string("empty.txt, emptyDir, c, prvy.txt, druhy.txt, a"));
     }
 
     @Test

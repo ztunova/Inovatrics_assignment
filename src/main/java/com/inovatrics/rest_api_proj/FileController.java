@@ -116,7 +116,7 @@ public class FileController {
         }
     }
 
-    @Operation(summary = "Get content of file")
+    @Operation(summary = "Get content of file", description = "When successful, returns content of file")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Content of file successfully read"),
             @ApiResponse(responseCode = "404", description = "File not found"),
@@ -137,11 +137,22 @@ public class FileController {
         }
     }
 
+    @Operation(summary = "Search for pattern in file content", description = "If successful, returns name of files where given pattern" +
+            " occurs and list of lines where pattern occurs in each of the files")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Content successfully read"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Other error")})
     @GetMapping("file:pattern")
-    public ResponseEntity<String> serachForPatternInFileContent(@RequestParam("path") String dirPath, @RequestParam("pattern") String givenPattern){
+    public ResponseEntity<String> serachForPatternInFileContent(@RequestParam("path")
+                                                                    @Parameter(name = "path", description = "Path to file to search for pattern")
+                                                                            String dirPath, @RequestParam("pattern")
+                                                                    @Parameter(name = "pattern", description = "Pattern to search for")
+                                                                            String givenPattern){
         Map<String, ArrayList<Integer>> result = new HashMap<>();
 
         File dir = new File(dirPath);
+        // filter directories
         FileFilter fileFilter = new FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -149,17 +160,16 @@ public class FileController {
             }
         };
         File[] dirContent = dir.listFiles(fileFilter);
-        System.out.println(Arrays.toString(dirContent));
 
         Pattern pattern = Pattern.compile(givenPattern);
         Matcher matcher;
 
-        //TODO fix response for empty dir
         if (dirContent == null){
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         }
+        // searching for pattern
+        // result is map with key - value pairs, key = name of the file, value = array of line numbers where pattern was found
         for (File file : dirContent) {
-            System.out.println(file.getName());
             ArrayList<Integer> linesWithPattern = new ArrayList<>();
 
             try {
@@ -173,26 +183,18 @@ public class FileController {
 
                     if (matcher.find()) {
                         linesWithPattern.add(lineNum);
-                        System.out.println(lineNum + line);
                     }
-                    //System.out.println(matcher.find());
                 }
                 if (!linesWithPattern.isEmpty()){
                     result.put(file.getName(), linesWithPattern);
                 }
 
             } catch(FileNotFoundException fnf){
-                fnf.printStackTrace();
                 return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
             } catch (IOException e) {
-                //TODO response
-                e.printStackTrace();
                 return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-
-        System.out.println(result);
         return new ResponseEntity<>(result.toString(), HttpStatus.OK);
-
     }
 }
