@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -30,18 +29,11 @@ class FileControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(fileController).build();
     }
 
-    @Test
-    void getPomocTest() throws Exception {
-        mockMvc.perform(
-                MockMvcRequestBuilders.get("/pomoc")
-        )
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("Pomoc"));
-    }
 
     @Test
     void createNewFileTest() throws Exception {
-        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/siesty.txt";
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/newCreated.txt";
+        Files.deleteIfExists(Paths.get(path));
         String content = "nejaky obsah suboru";
 
         mockMvc.perform(
@@ -54,7 +46,6 @@ class FileControllerTest {
 
         assert Files.exists(Paths.get(path));
         assert Files.readString(Paths.get(path)).equals(content);
-        Files.delete(Paths.get(path));
     }
 
     @Test
@@ -75,7 +66,8 @@ class FileControllerTest {
 
     @Test
     void deleteExistingFileTest() throws Exception {
-        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/treti.txt";
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/toBeDeleted.txt";
+        Files.createFile(Paths.get(path));
 
         assert Files.exists(Paths.get(path));
         mockMvc.perform(
@@ -86,7 +78,6 @@ class FileControllerTest {
                 .andExpect(MockMvcResultMatchers.content().string("File deleted"));
 
         assertFalse(Files.exists(Paths.get(path)));
-        Files.createFile(Paths.get(path));
     }
 
     @Test
@@ -106,6 +97,7 @@ class FileControllerTest {
     void copyFileToTargetDirectoryTest() throws Exception {
         String srcPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/druhy.txt";
         String dstPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/a/druhy_copy.txt";
+        Files.deleteIfExists(Paths.get(dstPath));
 
         assert Files.exists(Paths.get(srcPath));
         assertFalse(Files.exists(Paths.get(dstPath)));
@@ -119,7 +111,6 @@ class FileControllerTest {
 
         assert Files.exists(Paths.get(srcPath));
         assert Files.exists(Paths.get(dstPath));
-        Files.delete(Paths.get(dstPath));
     }
 
     @Test
@@ -155,8 +146,9 @@ class FileControllerTest {
 
     @Test
     void moveFileToTargetDirectoryTest() throws Exception {
-        String srcPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/druhy.txt";
-        String dstPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/a/druhy.txt";
+        String srcPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/piaty.txt";
+        String dstPath = "C:/Users/HP/Desktop/InovatricsUlohaTest/a/piaty.txt";
+        Files.move(Paths.get(dstPath), Paths.get(srcPath));
 
         assert Files.exists(Paths.get(srcPath));
         assertFalse(Files.exists(Paths.get(dstPath)));
@@ -170,7 +162,6 @@ class FileControllerTest {
 
         assertFalse (Files.exists(Paths.get(srcPath)));
         assert Files.exists(Paths.get(dstPath));
-        Files.move(Paths.get(dstPath), Paths.get(srcPath));
     }
 
     @Test
@@ -203,5 +194,103 @@ class FileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("File not found"));
     }
+
+    @Test
+    void getContentOfFileTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/prvy.txt";
+        String content = """
+                100 Continue
+                This interim response indicates that the client should continue the request or ignore the response if the request is already finished.
+
+                101 Switching Protocols
+                This code is sent in response to an Upgrade request header from the client and indicates the protocol the server is switching to.
+
+                102 Processing
+                This code indicates that the server has received and is processing the request, but no response is available yet.""";
+
+        content = content.replace("\n", "").replace("\r", "");
+
+        assert Files.exists(Paths.get(path));
+        MvcResult result = mockMvc.perform(
+                MockMvcRequestBuilders.get("/file")
+                        .param("path", path)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String responseContent = result.getResponse().getContentAsString().replace("\n", "").replace("\r", "");
+
+        assert content.equals(responseContent);
+    }
+
+    @Test
+    void getContentOfEmptyFileTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/empty.txt";
+
+        assert Files.exists(Paths.get(path));
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/file")
+                        .param("path", path)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string(""));
+    }
+
+    @Test
+    void getContentOfNotExistingFileTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/abc.txt";
+
+        assertFalse(Files.exists(Paths.get(path)));
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/file")
+                        .param("path", path)
+        )
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string("File not found"));
+    }
+
+    @Test
+    void findPatternNotExistingDirectoryTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/xyz";
+        String pattern = "anything";
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/file:pattern")
+                        .param("path", path)
+                        .param("pattern", pattern)
+        )
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string("File not found"));
+    }
+
+    @Test
+    void findPatternEmptyDirectoryTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest/emptyDir";
+        String pattern = "anything";
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/file:pattern")
+                        .param("path", path)
+                        .param("pattern", pattern)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("{}"));
+    }
+
+    @Test
+    void findPatternTest() throws Exception {
+        String path = "C:/Users/HP/Desktop/InovatricsUlohaTest";
+        String pattern = "request";
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/file:pattern")
+                        .param("path", path)
+                        .param("pattern", pattern)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("{prvy.txt=[2, 5, 8], druhy.txt=[2, 7, 10]}"));
+    }
+
+
 
 }

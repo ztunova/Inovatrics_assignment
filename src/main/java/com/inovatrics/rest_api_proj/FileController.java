@@ -13,10 +13,6 @@ import java.util.regex.Pattern;
 @RestController
 public class FileController {
 
-    @GetMapping("pomoc")
-    public String pomocna(){
-        return "Pomoc";
-    }
 
     @PostMapping("file")
     public ResponseEntity<String> createNewFile(@RequestParam("path") String filePath, @RequestParam("content") String fileContent){
@@ -109,17 +105,11 @@ public class FileController {
             String content = Files.readString(path);
             System.out.println(content);
             return new ResponseEntity<>(content, HttpStatus.OK);
-        } catch(OutOfMemoryError o){
-            o.printStackTrace();
-            return new ResponseEntity<>("File too large", HttpStatus.INSUFFICIENT_STORAGE);
         } catch (NoSuchFileException no){
-            no.printStackTrace();
+            //no.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        } catch(AccessDeniedException ad){
-            ad.printStackTrace();
-            return new ResponseEntity<>("Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         } catch (IOException e){
-            e.printStackTrace();
+            //e.printStackTrace();
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -143,7 +133,7 @@ public class FileController {
 
         //TODO fix response for empty dir
         if (dirContent == null){
-            return new ResponseEntity<>("Empty directory", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         }
         for (File file : dirContent) {
             System.out.println(file.getName());
@@ -174,7 +164,7 @@ public class FileController {
             } catch (IOException e) {
                 //TODO response
                 e.printStackTrace();
-                return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
