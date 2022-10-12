@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 class FileControllerTest {
@@ -38,8 +38,8 @@ class FileControllerTest {
 
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/file")
-                .param("path", path)
-                .param("content", content)
+                        .param("path", path)
+                        .param("content", content)
         )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.content().string("File Created"));
@@ -160,7 +160,7 @@ class FileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("File moved"));
 
-        assertFalse (Files.exists(Paths.get(srcPath)));
+        assertFalse(Files.exists(Paths.get(srcPath)));
         assert Files.exists(Paths.get(dstPath));
     }
 

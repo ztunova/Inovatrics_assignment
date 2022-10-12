@@ -9,7 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 @RestController
 public class DirectoryController {
@@ -21,11 +22,11 @@ public class DirectoryController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @PostMapping("directory")
     public ResponseEntity<String> createNewDirectory(@RequestParam("path")
-                                                         @Parameter(name = "path", description = "Path to directory to be created")
-                                                                 String dirPath){
+                                                     @Parameter(name = "path", description = "Path to directory to be created")
+                                                             String dirPath) {
         File newDirectory = new File(dirPath);
-        if (!newDirectory.exists()){
-            if (newDirectory.mkdirs()){
+        if (!newDirectory.exists()) {
+            if (newDirectory.mkdirs()) {
                 return new ResponseEntity<>("Directory created", HttpStatus.CREATED);
             } else {
                 return new ResponseEntity<>("Directory failed to create", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -36,12 +37,12 @@ public class DirectoryController {
     }
 
     // recursive function to delete files and directories in the given folder
-    private void deleteSubfiles(File folder){
+    private void deleteSubfiles(File folder) {
         File[] childFolders = folder.listFiles();
 
         assert childFolders != null;
-        for (File file : childFolders){
-            if (file.isDirectory()){
+        for (File file : childFolders) {
+            if (file.isDirectory()) {
                 deleteSubfiles(file);
             }
             file.delete();
@@ -55,10 +56,10 @@ public class DirectoryController {
             @ApiResponse(responseCode = "404", description = "Directory not found")})
     @DeleteMapping("directory")
     public ResponseEntity<String> deleteExistingDirectory(@RequestParam("path")
-                                                              @Parameter(name = "path", description = "Path to directory to be deleted")
-                                                                      String dirPath){
+                                                          @Parameter(name = "path", description = "Path to directory to be deleted")
+                                                                  String dirPath) {
         File dir = new File(dirPath);
-        if(!dir.exists()){
+        if (!dir.exists()) {
             return new ResponseEntity<>("Directory not found", HttpStatus.NOT_FOUND);
         }
         if (dir.isDirectory()) {
@@ -70,12 +71,12 @@ public class DirectoryController {
     }
 
     // get size of folder by summing all files in the given directory and child directories (recursive function)
-    private long lengthOfDirectory(File folder){
+    private long lengthOfDirectory(File folder) {
         File[] filesInFolder = folder.listFiles();
         long size = 0;
         assert filesInFolder != null;
-        for (File f : filesInFolder){
-            if (f.isFile()){
+        for (File f : filesInFolder) {
+            if (f.isFile()) {
                 size = size + f.length();
             } else {
                 size = size + lengthOfDirectory(f);
@@ -90,8 +91,8 @@ public class DirectoryController {
             @ApiResponse(responseCode = "404", description = "Directory not found")})
     @GetMapping("directory")
     public ResponseEntity<String> listContentOfDirectory(@RequestParam("path")
-                                                             @Parameter(name = "path", description = "Path to folder")
-                                                                     String dirPath){
+                                                         @Parameter(name = "path", description = "Path to folder")
+                                                                 String dirPath) {
         File dir = new File(dirPath);
         File[] fileArr = dir.listFiles();
         if (fileArr != null) {
@@ -99,14 +100,14 @@ public class DirectoryController {
 
             long size = 0;
             ArrayList<String> value;
-            for (File f : fileArr){
-                if (f.isDirectory()){
+            for (File f : fileArr) {
+                if (f.isDirectory()) {
                     size = lengthOfDirectory(f);
                 } else {
                     size = f.length();
                 }
 
-                if (sizeFileMap.containsKey(size)){
+                if (sizeFileMap.containsKey(size)) {
                     value = sizeFileMap.get(size);
                 } else {
                     value = new ArrayList<>();

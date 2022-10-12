@@ -14,7 +14,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 class DirectoryControllerTest {

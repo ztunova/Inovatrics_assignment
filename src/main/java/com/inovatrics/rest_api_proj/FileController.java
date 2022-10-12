@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,10 +27,10 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @PostMapping("file")
     public ResponseEntity<String> createNewFile(@RequestParam("path")
-                                                    @Parameter(name = "path", description = "path to created file") String filePath,
+                                                @Parameter(name = "path", description = "path to created file") String filePath,
                                                 @RequestParam("content")
                                                 @Parameter(name = "content", description = "content of new file")
-                                                        String fileContent){
+                                                        String fileContent) {
         Path myPath = Paths.get(filePath);
         try {
             Files.createFile(myPath);
@@ -36,7 +38,7 @@ public class FileController {
             return new ResponseEntity<>("File Created", HttpStatus.CREATED);
         } catch (FileAlreadyExistsException fe) {
             return new ResponseEntity<>("File already exists", HttpStatus.BAD_REQUEST);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -48,15 +50,15 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @DeleteMapping("file")
     public ResponseEntity<String> deleteExistingFile(@RequestParam("path")
-                                                         @Parameter(name = "path", description = "Path to file to be deleted")
-                                                                 String filePath) {
+                                                     @Parameter(name = "path", description = "Path to file to be deleted")
+                                                             String filePath) {
         Path path = Paths.get(filePath);
         try {
             Files.delete(path);
             return new ResponseEntity<>("File deleted", HttpStatus.OK);
         } catch (NoSuchFileException noFile) {
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -69,21 +71,21 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @PostMapping("file:copy")
     public ResponseEntity<String> copyFileToTargetDirectory(@RequestParam("srcPath")
-                                                                @Parameter(name = "srcPath", description = "Path to file to be copied")
-                                                                        String srcPath,
+                                                            @Parameter(name = "srcPath", description = "Path to file to be copied")
+                                                                    String srcPath,
                                                             @RequestParam("dstPath") @Parameter(name = "dstPath", description = "Path to copied file")
-                                                                    String dstPath){
+                                                                    String dstPath) {
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
         try {
             Files.copy(source, destination);
             return new ResponseEntity<>("File copied", HttpStatus.OK);
-        } catch(FileAlreadyExistsException fe){
+        } catch (FileAlreadyExistsException fe) {
             return new ResponseEntity<>("Destination file already exists", HttpStatus.BAD_REQUEST);
-        } catch (NoSuchFileException no){
+        } catch (NoSuchFileException no) {
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -96,22 +98,22 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @PatchMapping("file")
     public ResponseEntity<String> moveFileToTargetDirectory(@RequestParam("srcPath")
-                                                                @Parameter(name = "srcPath", description = "Path to file to be moved")
-                                                                        String srcPath,
+                                                            @Parameter(name = "srcPath", description = "Path to file to be moved")
+                                                                    String srcPath,
                                                             @RequestParam("dstPath")
                                                             @Parameter(name = "dstPath", description = "Path to moved file")
-                                                                    String dstPath){
+                                                                    String dstPath) {
         Path source = Paths.get(srcPath);
         Path destination = Paths.get(dstPath);
 
         try {
             Files.move(source, destination);
             return new ResponseEntity<>("File moved", HttpStatus.OK);
-        } catch(FileAlreadyExistsException fe){
+        } catch (FileAlreadyExistsException fe) {
             return new ResponseEntity<>("Destination file already exists", HttpStatus.BAD_REQUEST);
-        } catch (NoSuchFileException no){
+        } catch (NoSuchFileException no) {
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -123,16 +125,16 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @GetMapping("file")
     public ResponseEntity<String> getContentOfFile(@RequestParam("path")
-                                                       @Parameter(name = "path", description = "Path to file to be read")
-                                                               String filePath){
+                                                   @Parameter(name = "path", description = "Path to file to be read")
+                                                           String filePath) {
 
         Path path = Paths.get(filePath);
         try {
             String content = Files.readString(path);
             return new ResponseEntity<>(content, HttpStatus.OK);
-        } catch (NoSuchFileException no){
+        } catch (NoSuchFileException no) {
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -145,10 +147,10 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Other error")})
     @GetMapping("file:pattern")
     public ResponseEntity<String> serachForPatternInFileContent(@RequestParam("path")
-                                                                    @Parameter(name = "path", description = "Path to file to search for pattern")
-                                                                            String dirPath, @RequestParam("pattern")
-                                                                    @Parameter(name = "pattern", description = "Pattern to search for")
-                                                                            String givenPattern){
+                                                                @Parameter(name = "path", description = "Path to file to search for pattern")
+                                                                        String dirPath, @RequestParam("pattern")
+                                                                @Parameter(name = "pattern", description = "Pattern to search for")
+                                                                        String givenPattern) {
         Map<String, ArrayList<Integer>> result = new HashMap<>();
 
         File dir = new File(dirPath);
@@ -164,7 +166,7 @@ public class FileController {
         Pattern pattern = Pattern.compile(givenPattern);
         Matcher matcher;
 
-        if (dirContent == null){
+        if (dirContent == null) {
             return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
         }
         // searching for pattern
@@ -185,11 +187,11 @@ public class FileController {
                         linesWithPattern.add(lineNum);
                     }
                 }
-                if (!linesWithPattern.isEmpty()){
+                if (!linesWithPattern.isEmpty()) {
                     result.put(file.getName(), linesWithPattern);
                 }
 
-            } catch(FileNotFoundException fnf){
+            } catch (FileNotFoundException fnf) {
                 return new ResponseEntity<>("File not found", HttpStatus.NOT_FOUND);
             } catch (IOException e) {
                 return new ResponseEntity<>(e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR);
